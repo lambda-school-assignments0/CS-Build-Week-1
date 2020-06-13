@@ -12,11 +12,11 @@ class App extends Component {
             <div className='app'>
                 <header className='app-header'>
                     <h1>Conway's Game of Life</h1>
-                    <div class='app-middle'>
+                    <div className='app-middle'>
                         <Canvas />
                         <Rules />
                     </div>
-                    <div class='app-bot'>
+                    <div className='app-bot'>
                         <About />
                     </div>
                 </header>
