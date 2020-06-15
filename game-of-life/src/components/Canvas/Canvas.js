@@ -133,18 +133,25 @@ class Canvas extends Component {
     async canvasMouseDown(event) {
         console.log('Mouse pressed!');
         const cellLive = [...this.state.cellLive];
-        const cellLiveMap = 
+        const cellLiveMap = new Map(this.state.cellLiveMap);
 
         const currX = Math.floor(event.offsetX / this.state.gridSize);
         const currY = Math.floor(event.offsetY / this.state.gridSize);
 
         if (!this.state.cellLiveMap.has(`[${currX}, ${currY}]`)) {
             cellLive.push([currX, currY]);
-
+            cellLiveMap.set(`[${currX}, ${currY}]`, cellLive.length - 1);
         } else {
-            
+            console.log(currX, currY, cellLiveMap, cellLiveMap[`[${currX}, ${currY}]`])
+            cellLive.splice(cellLiveMap.get(`[${currX}, ${currY}]`), 1);
+            cellLiveMap.delete(`[${currX}, ${currY}]`);
         }
-        await this.setState({ cellLive: cellLive, lastEdited: cellLive });
+
+        await this.setState({
+            cellLive: cellLive,
+            cellLiveMap: cellLiveMap,
+        });
+
         this.drawActive();
     }
 
