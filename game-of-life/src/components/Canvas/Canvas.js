@@ -20,8 +20,8 @@ class Canvas extends Component {
             canvas: null,
             canvasCtx: null,
             canvasSize: 400,
-            cellDead: initState.cellDead,
-            cellLive: initState.cellLive,
+            cellLive: [],
+            cellLiveMap: new Map(),
             fps: 2,
             gridSize: 20,
             isAnimating: false,
@@ -66,6 +66,11 @@ class Canvas extends Component {
     deadNeighbors(coordsLive) {
         let coordsDead = [];
         let visited = new Set();
+
+        for (let coordLive of coordsLive) {
+            visited.add(String(coordLive));
+        }
+
         for (let coords of coordsLive) {
             let coordsAdjacent = [
                 [coords[0] - 1, coords[1] - 1], // top left
@@ -78,7 +83,7 @@ class Canvas extends Component {
                 [coords[0] + 1, coords[1] + 1], // bot right
             ];
             for (let coordsAdj of coordsAdjacent) {
-                if (coords[0] !== coordsAdj[0] && coords[1] !== coordsAdj[1] && !visited.has(String(coordsAdj))) {
+                if (!visited.has(String(coordsAdj))) {
                     coordsDead.push(coordsAdj);
                     visited.add(String(coordsAdj));
                 }
@@ -128,7 +133,17 @@ class Canvas extends Component {
     async canvasMouseDown(event) {
         console.log('Mouse pressed!');
         const cellLive = [...this.state.cellLive];
-        cellLive.push([Math.floor(event.offsetX / this.state.gridSize), Math.floor(event.offsetY / this.state.gridSize)]);
+        const cellLiveMap = 
+
+        const currX = Math.floor(event.offsetX / this.state.gridSize);
+        const currY = Math.floor(event.offsetY / this.state.gridSize);
+
+        if (!this.state.cellLiveMap.has(`[${currX}, ${currY}]`)) {
+            cellLive.push([currX, currY]);
+
+        } else {
+            
+        }
         await this.setState({ cellLive: cellLive, lastEdited: cellLive });
         this.drawActive();
     }
