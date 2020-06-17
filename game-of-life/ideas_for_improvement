@@ -1,0 +1,12 @@
+- make `this.drawGrid()` able to take in coordinates
+  so that it does not need to always redraw all the
+  gridlines
+
+- create sliders and buttons to change the settings
+  so that users can turn on/off the grid or change
+  the speed at which the frames refresh at
+
+- check up on being able to activate cells not in grid
+  by holding down the left click
+
+- 
