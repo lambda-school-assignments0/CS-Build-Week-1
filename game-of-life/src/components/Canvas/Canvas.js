@@ -6,7 +6,6 @@ class Canvas extends Component {
         this.state = {
             canvasRef: React.createRef(),
             canvasSize: 400,
-            cellLive: [],
             cellLiveSet: new Set(),
             fps: 1,
             generation: 0,
@@ -40,7 +39,7 @@ class Canvas extends Component {
             }
         }
 
-        let cellNeighbors = this.getNeighbors(this.state.cellLiveSet);
+        let cellNeighbors = this.getDeadNeighbors(this.state.cellLiveSet);
         for (let cellNeighbor of cellNeighbors) {
             let numberLiveNeighbors = this.getNumberLiveNeighbors(cellNeighbor);
             if (numberLiveNeighbors === 3) {
@@ -54,13 +53,24 @@ class Canvas extends Component {
         });
     }
 
-    getNeighbors(coords) {
-        let coordsNeighbors = [];
-        let visited = new Set();
+    getDeadNeighbors(coords) {
+        /*
+        
+        Time Complexity:  O(?)
+        Space Complexity: O(?)
 
+        Input:  [x, y] -> (array)
+        Output: [x, y] -> (array)
+
+        Returns an array of the dead neighbors next to the cells
+        in the input coordinates
+
+        */
+        let coordsNeighbors = [];
+
+        let visited = new Set();
         for (let coord of coords) {
-            coord = this.parseCoordFromSet(coord);
-            visited.add(String(coord));
+            visited.add(coord);
         }
 
         for (let coord of coords) {
@@ -76,7 +86,7 @@ class Canvas extends Component {
                 [coord[0] + 1, coord[1] + 1], // bot right
             ];
             for (let coordAdjacent of coordsAdjacent) {
-                if (!visited.has(String(coordAdjacent))) {
+                if (!visited.has(`${coordAdjacent[0]},${coordAdjacent[1]}`)) {
                     coordsNeighbors.push(coordAdjacent);
                     visited.add(String(coordAdjacent));
                 }
@@ -86,6 +96,17 @@ class Canvas extends Component {
     }
 
     getNumberLiveNeighbors(coords) {
+        /*
+        
+        Time Complexity:  O(1)
+        Space Complexity: O(1)
+
+        Input:  [x, y] -> (array)
+        Output:      n -> (int)
+
+        Returns the number of neighbors that are alive
+
+        */
         let count = 0;
         let coordsAdjacent = [
             [coords[0] - 1, coords[1] - 1], // top left
@@ -97,24 +118,34 @@ class Canvas extends Component {
             [coords[0] + 0, coords[1] + 1], // bot mid
             [coords[0] + 1, coords[1] + 1], // bot right
         ];
+
         coordsAdjacent.forEach((coord) => {
-            for (let cellLive of this.state.cellLiveSet) {
-                cellLive = this.parseCoordFromSet(cellLive);
-                if (cellLive[0] === coord[0] && cellLive[1] === coord[1]) {
-                    count += 1;
-                }
+            if (this.state.cellLiveSet.has(`${coord[0]},${coord[1]}`)) {
+                count += 1;
             }
         });
+
         return count;
     }
 
     parseCoordFromSet(coord) {
+        /*
+
+        Time Complexity:  O(1)
+        Space Complexity: O(1)
+
+        Input:   `x,y` -> (str)
+        Output: [x, y] -> (array)
+
+        Returns an array of coordinates by parsing a string containing
+        coordinates separated by a comma
+
+        */
         let [x, y] = coord.split(',');
         return [Number(x), Number(y)];
     }
 
     componentDidMount() {
-        // console.log('CDM');
         this.canvas = this.state.canvasRef.current;
         this.canvasCtx = this.canvas.getContext('2d');
 
@@ -123,10 +154,6 @@ class Canvas extends Component {
         this.canvas.addEventListener('mouseup', (event) => this.canvasMouseUp(event));
 
         this.drawActive();
-    }
-
-    componentDidUpdate() {
-        // console.log({ method: 'CDU', state: this.state, refs: this.refs });
     }
 
     async canvasMouseDown(event) {
