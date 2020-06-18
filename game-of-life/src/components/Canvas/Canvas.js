@@ -260,14 +260,17 @@ class Canvas extends Component {
 
     pauseAnimation() {
         if (this.state.isAnimating) {
+            this.canvas.addEventListener('mousedown', this.canvasMouseDown);
+            this.canvas.addEventListener('mousemove', this.canvasMouseMove);
+            this.canvas.addEventListener('mouseup', this.canvasMouseUp);
             this.setState({ isAnimating: false });
         }
     }
 
     async resetAnimation() {
-        this.canvas.removeEventListener('mousedown', this.canvasMouseDown);
-        this.canvas.removeEventListener('mousemove', this.canvasMouseMove);
-        this.canvas.removeEventListener('mouseup', this.canvasMouseUp);
+        this.canvas.addEventListener('mousedown', this.canvasMouseDown);
+        this.canvas.addEventListener('mousemove', this.canvasMouseMove);
+        this.canvas.addEventListener('mouseup', this.canvasMouseUp);
         await this.setState({
             isAnimating: false,
             generation: 0,
