@@ -4,22 +4,21 @@ class Canvas extends Component {
     constructor() {
         super();
         this.state = {
-            canvasRef: React.createRef(),
+            canvasCurr: 'canvas1',
+            canvasRef1: React.createRef(),
+            canvasRef2: React.createRef(),
             canvasSize: 400,
             cellLiveSet: new Set(),
-            fps: 1,
+            fps: 2,
             generation: 0,
             gridSize: 20,
             initState: new Set(),
             isAnimating: false,
             isDrawing: false,
             lastEdited: null,
-            speed: 1000,
             timeCurrent: null,
             timePrev: null,
         };
-        this.canvas = null;
-        this.canvasCtx = null;
     }
 
     algoGameOfLife() {
@@ -146,17 +145,21 @@ class Canvas extends Component {
     }
 
     componentDidMount() {
-        this.canvas = this.state.canvasRef.current;
-        this.canvasCtx = this.canvas.getContext('2d');
+        this.canvas1 = this.state.canvasRef1.current;
+        this.canvasCtx1 = this.canvas1.getContext('2d');
 
-        this.canvas.addEventListener('mousedown', this.canvasMouseDown);
-        this.canvas.addEventListener('mousemove', this.canvasMouseMove);
-        this.canvas.addEventListener('mouseup', this.canvasMouseUp);
+        this.canvas2 = this.state.canvasRef2.current;
+        this.canvasCtx2 = this.canvas2.getContext('2d');
 
-        this.drawActive();
+        this.canvas1.addEventListener('mousedown', this.canvasMouseDown);
+        this.canvas1.addEventListener('mousemove', this.canvasMouseMove);
+        this.canvas1.addEventListener('mouseup', this.canvasMouseUp);
+
+        this.drawGrid(this.canvasCtx1);
     }
 
     canvasMouseDown = async (event) => {
+        const canvasCtx = this.state.canvasCurr === 'canvas1' ? this.canvasCtx1 : this.canvasCtx2;
         const cellLiveSet = new Set(this.state.cellLiveSet);
 
         const currX = Math.floor(event.offsetX / this.state.gridSize);
@@ -166,13 +169,13 @@ class Canvas extends Component {
 
         if (!this.state.cellLiveSet.has(`${currX},${currY}`)) {
             cellLiveSet.add(`${currX},${currY}`);
-            this.canvasCtx.fillRect(coordsMapped[0], coordsMapped[1], this.state.gridSize, this.state.gridSize);
+            canvasCtx.fillRect(coordsMapped[0], coordsMapped[1], this.state.gridSize, this.state.gridSize);
         } else {
             cellLiveSet.delete(`${currX},${currY}`);
-            this.canvasCtx.clearRect(coordsMapped[0], coordsMapped[1], this.state.gridSize, this.state.gridSize);
+            canvasCtx.clearRect(coordsMapped[0], coordsMapped[1], this.state.gridSize, this.state.gridSize);
         }
 
-        this.drawGrid();
+        this.drawGrid(canvasCtx);
 
         await this.setState({
             isDrawing: true,
@@ -182,6 +185,8 @@ class Canvas extends Component {
     };
 
     canvasMouseMove = async (event) => {
+        const canvasCtx = this.state.canvasCurr === 'canvas1' ? this.canvasCtx1 : this.canvasCtx2;
+
         const currX = Math.floor(event.offsetX / this.state.gridSize);
         const currY = Math.floor(event.offsetY / this.state.gridSize);
 
@@ -192,13 +197,13 @@ class Canvas extends Component {
 
             if (!this.state.cellLiveSet.has(`${currX},${currY}`)) {
                 cellLiveSet.add(`${currX},${currY}`);
-                this.canvasCtx.fillRect(coordsMapped[0], coordsMapped[1], this.state.gridSize, this.state.gridSize);
+                canvasCtx.fillRect(coordsMapped[0], coordsMapped[1], this.state.gridSize, this.state.gridSize);
             } else {
                 cellLiveSet.delete(`${currX},${currY}`);
-                this.canvasCtx.clearRect(coordsMapped[0], coordsMapped[1], this.state.gridSize, this.state.gridSize);
+                canvasCtx.clearRect(coordsMapped[0], coordsMapped[1], this.state.gridSize, this.state.gridSize);
             }
 
-            this.drawGrid();
+            this.drawGrid(canvasCtx);
 
             this.setState({
                 cellLiveSet: cellLiveSet,
@@ -213,17 +218,17 @@ class Canvas extends Component {
         });
     };
 
-    drawActive() {
-        this.canvasCtx.clearRect(0, 0, this.state.canvasSize, this.state.canvasSize);
+    drawActive(canvasCtx) {
+        canvasCtx.clearRect(0, 0, this.state.canvasSize, this.state.canvasSize);
         for (let coords of this.state.cellLiveSet) {
             coords = this.parseCoordFromSet(coords);
             let coordsMapped = [coords[0] * this.state.gridSize, coords[1] * this.state.gridSize];
-            this.canvasCtx.fillRect(coordsMapped[0], coordsMapped[1], this.state.gridSize, this.state.gridSize);
+            canvasCtx.fillRect(coordsMapped[0], coordsMapped[1], this.state.gridSize, this.state.gridSize);
         }
-        this.drawGrid();
+        this.drawGrid(canvasCtx);
     }
 
-    drawGrid() {
+    drawGrid(canvasCtx) {
         /*
         drawGrid(context) draws gridlines spaced out according
         to `this.state.gridSize` that fits in a square with the
@@ -231,59 +236,63 @@ class Canvas extends Component {
         */
 
         // draw vertical grid lines
-        this.canvasCtx.strokeStyle = '#C0C0C0';
+        canvasCtx.strokeStyle = '#C0C0C0';
 
         for (let x = this.state.gridSize; x < this.state.canvasSize; x += this.state.gridSize) {
-            this.canvasCtx.moveTo(x, 0);
-            this.canvasCtx.lineTo(x, this.state.canvasSize);
-            this.canvasCtx.stroke();
+            canvasCtx.moveTo(x, 0);
+            canvasCtx.lineTo(x, this.state.canvasSize);
+            canvasCtx.stroke();
         }
 
         // draw horizontal grid lines
         for (let y = this.state.gridSize; y < this.state.canvasSize; y += this.state.gridSize) {
-            this.canvasCtx.moveTo(0, y);
-            this.canvasCtx.lineTo(this.state.canvasSize, y);
-            this.canvasCtx.stroke();
+            canvasCtx.moveTo(0, y);
+            canvasCtx.lineTo(this.state.canvasSize, y);
+            canvasCtx.stroke();
         }
     }
 
     animateStep() {
         if (this.state.isAnimating) {
-            setTimeout(async () => {
+            this.timeout = setTimeout(async () => {
                 this.rAF = requestAnimationFrame(this.animateStep.bind(this));
-                await this.algoGameOfLife();
-                this.drawActive(this.canvasCtx);
-                await this.setState({ generation: this.state.generation + 1 });
+                this.algoGameOfLife();
+                this.drawActive(this.state.canvasCurr === 'canvas1' ? this.canvasCtx2 : this.canvasCtx1);
+                this.setState({ generation: this.state.generation + 1, canvasCurr: this.state.canvasCurr === 'canvas1' ? 'canvas2' : 'canvas1' });
             }, 1000 / this.state.fps);
         }
     }
 
     pauseAnimation() {
         if (this.state.isAnimating) {
-            this.canvas.addEventListener('mousedown', this.canvasMouseDown);
-            this.canvas.addEventListener('mousemove', this.canvasMouseMove);
-            this.canvas.addEventListener('mouseup', this.canvasMouseUp);
+            clearTimeout(this.timeout);
+            cancelAnimationFrame(this.rAF);
+            // this.canvas.addEventListener('mousedown', this.canvasMouseDown);
+            // this.canvas.addEventListener('mousemove', this.canvasMouseMove);
+            // this.canvas.addEventListener('mouseup', this.canvasMouseUp);
             this.setState({ isAnimating: false });
         }
     }
 
     async resetAnimation() {
-        this.canvas.addEventListener('mousedown', this.canvasMouseDown);
-        this.canvas.addEventListener('mousemove', this.canvasMouseMove);
-        this.canvas.addEventListener('mouseup', this.canvasMouseUp);
+        // this.canvas.addEventListener('mousedown', this.canvasMouseDown);
+        // this.canvas.addEventListener('mousemove', this.canvasMouseMove);
+        // this.canvas.addEventListener('mouseup', this.canvasMouseUp);
         await this.setState({
             isAnimating: false,
             generation: 0,
             cellLiveSet: this.state.initState,
         });
-        this.drawActive();
+        this.drawActive(this.canvasCtx);
     }
 
     async startAnimation() {
+        const canvas = this.state.canvasCurr === 'canvas1' ? this.canvas1 : this.canvas2;
+
         if (!this.state.isAnimating) {
-            this.canvas.removeEventListener('mousedown', this.canvasMouseDown);
-            this.canvas.removeEventListener('mousemove', this.canvasMouseMove);
-            this.canvas.removeEventListener('mouseup', this.canvasMouseUp);
+            // this.canvas.removeEventListener('mousedown', this.canvasMouseDown);
+            // this.canvas.removeEventListener('mousemove', this.canvasMouseMove);
+            // this.canvas.removeEventListener('mouseup', this.canvasMouseUp);
             await this.setState({ isAnimating: true });
             this.animateStep();
         }
@@ -291,9 +300,9 @@ class Canvas extends Component {
 
     async stopAnimation() {
         if (this.state.isAnimating) {
-            await this.canvas.addEventListener('mousedown', (event) => this.canvasMouseDown(event));
-            await this.canvas.addEventListener('mousemove', (event) => this.canvasMouseMove(event));
-            await this.canvas.addEventListener('mouseup', (event) => this.canvasMouseUp(event));
+            // await this.canvas.addEventListener('mousedown', (event) => this.canvasMouseDown(event));
+            // await this.canvas.addEventListener('mousemove', (event) => this.canvasMouseMove(event));
+            // await this.canvas.addEventListener('mouseup', (event) => this.canvasMouseUp(event));
             this.setState({ isAnimating: false });
         }
     }
@@ -302,7 +311,8 @@ class Canvas extends Component {
         return (
             <div>
                 <h2>Generation: {this.state.generation}</h2>
-                <canvas className='canvas' ref={this.state.canvasRef} width={this.state.canvasSize} height={this.state.canvasSize}></canvas>
+                <canvas className='canvas1' style={{ display: this.state.canvasCurr === 'canvas1' ? 'flex' : 'none' }} ref={this.state.canvasRef1} width={this.state.canvasSize} height={this.state.canvasSize}></canvas>
+                <canvas className='canvas2' style={{ display: this.state.canvasCurr === 'canvas2' ? 'flex' : 'none' }} ref={this.state.canvasRef2} width={this.state.canvasSize} height={this.state.canvasSize}></canvas>
                 <button onClick={() => this.startAnimation()}>Start</button>
                 <button onClick={() => this.stopAnimation()}>Stop</button>
                 <button onClick={() => this.resetAnimation()}>Reset</button>
