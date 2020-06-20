@@ -6,7 +6,10 @@
   so that users can turn on/off the grid or change
   the speed at which the frames refresh at
 
-- check up on being able to activate cells not in grid
+- check up on being able to activate cells not in canvas
   by holding down the left click
 
-- 
+- fix glitch where it takes another step after
+  hitting stop/reset [DONE]
+
+- debug start/stop/reset and get functionality down

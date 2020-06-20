@@ -9,16 +9,17 @@ class Canvas extends Component {
             canvasRef2: React.createRef(),
             canvasSize: 400,
             cellLiveSet: new Set(),
-            fps: 2,
+            fps: 2000, // new frame every ${fps} / 1000 seconds
             generation: 0,
             gridSize: 20,
             initState: new Set(),
             isAnimating: false,
             isDrawing: false,
             lastEdited: null,
-            timeCurrent: null,
-            timePrev: null,
+            timePrev: 0,
         };
+
+        this.timePrev = null;
     }
 
     algoGameOfLife() {
@@ -252,14 +253,23 @@ class Canvas extends Component {
         }
     }
 
-    animateStep() {
+    async animateStep(timestamp) {
+        if (this.timePrev === null || this.timePrev === undefined) {
+            this.timePrev = timestamp
+        }
         if (this.state.isAnimating) {
-            this.timeout = setTimeout(async () => {
-                this.rAF = requestAnimationFrame(this.animateStep.bind(this));
+            this.rAF = requestAnimationFrame(this.animateStep.bind(this));
+            const timePassed = Math.floor(timestamp - this.timePrev);
+            if (timePassed >= this.state.fps) {
                 this.algoGameOfLife();
                 this.drawActive(this.state.canvasCurr === 'canvas1' ? this.canvasCtx2 : this.canvasCtx1);
-                this.setState({ generation: this.state.generation + 1, canvasCurr: this.state.canvasCurr === 'canvas1' ? 'canvas2' : 'canvas1' });
-            }, 1000 / this.state.fps);
+                this.timePrev = timestamp
+                await this.setState({
+                    generation: this.state.generation + 1,
+                    canvasCurr: this.state.canvasCurr === 'canvas1' ? 'canvas2' : 'canvas1',
+                    timePrev: timestamp
+                });
+            }
         }
     }
 
@@ -275,34 +285,43 @@ class Canvas extends Component {
     }
 
     async resetAnimation() {
-        // this.canvas.addEventListener('mousedown', this.canvasMouseDown);
-        // this.canvas.addEventListener('mousemove', this.canvasMouseMove);
-        // this.canvas.addEventListener('mouseup', this.canvasMouseUp);
+        const canvas = this.state.canvasCurr === 'canvas1' ? this.canvas1 : this.canvas2;
+        
+        canvas.addEventListener('mousedown', this.canvasMouseDown);
+        canvas.addEventListener('mousemove', this.canvasMouseMove);
+        canvas.addEventListener('mouseup', this.canvasMouseUp);
+        
         await this.setState({
             isAnimating: false,
             generation: 0,
             cellLiveSet: this.state.initState,
         });
-        this.drawActive(this.canvasCtx);
+        
+        this.drawActive(this.canvasCtx1);
+        this.drawActive(this.canvasCtx2);
     }
 
     async startAnimation() {
-        const canvas = this.state.canvasCurr === 'canvas1' ? this.canvas1 : this.canvas2;
-
         if (!this.state.isAnimating) {
-            // this.canvas.removeEventListener('mousedown', this.canvasMouseDown);
-            // this.canvas.removeEventListener('mousemove', this.canvasMouseMove);
-            // this.canvas.removeEventListener('mouseup', this.canvasMouseUp);
-            await this.setState({ isAnimating: true });
+            this.canvas1.removeEventListener('mousedown', this.canvasMouseDown);
+            this.canvas1.removeEventListener('mousemove', this.canvasMouseMove);
+            this.canvas1.removeEventListener('mouseup', this.canvasMouseUp);
+            this.canvas2.removeEventListener('mousedown', this.canvasMouseDown);
+            this.canvas2.removeEventListener('mousemove', this.canvasMouseMove);
+            this.canvas2.removeEventListener('mouseup', this.canvasMouseUp);
+            await this.setState({ isAnimating: true, initState: this.state.cellLiveSet });
             this.animateStep();
         }
     }
 
     async stopAnimation() {
+        const canvas = this.state.canvasCurr === 'canvas1' ? this.canvas1 : this.canvas2;
+
         if (this.state.isAnimating) {
-            // await this.canvas.addEventListener('mousedown', (event) => this.canvasMouseDown(event));
-            // await this.canvas.addEventListener('mousemove', (event) => this.canvasMouseMove(event));
-            // await this.canvas.addEventListener('mouseup', (event) => this.canvasMouseUp(event));
+            this.timePrev = 0;
+            canvas.addEventListener('mousedown', (event) => this.canvasMouseDown(event));
+            canvas.addEventListener('mousemove', (event) => this.canvasMouseMove(event));
+            canvas.addEventListener('mouseup', (event) => this.canvasMouseUp(event));
             this.setState({ isAnimating: false });
         }
     }
