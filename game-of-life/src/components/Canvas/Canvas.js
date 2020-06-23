@@ -155,44 +155,20 @@ class Canvas extends Component {
         this.canvas1.addEventListener('mousedown', this.canvasMouseDown);
         this.canvas1.addEventListener('mousemove', this.canvasMouseMove);
         this.canvas1.addEventListener('mouseup', this.canvasMouseUp);
+        this.canvas2.addEventListener('mousedown', this.canvasMouseDown);
+        this.canvas2.addEventListener('mousemove', this.canvasMouseMove);
+        this.canvas2.addEventListener('mouseup', this.canvasMouseUp);
 
         this.drawGrid(this.canvasCtx1);
     }
 
     canvasMouseDown = async (event) => {
-        const canvasCtx = this.state.canvasCurr === 'canvas1' ? this.canvasCtx1 : this.canvasCtx2;
-        const cellLiveSet = new Set(this.state.cellLiveSet);
-
-        const currX = Math.floor(event.offsetX / this.state.gridSize);
-        const currY = Math.floor(event.offsetY / this.state.gridSize);
-
-        const coordsMapped = [currX * this.state.gridSize, currY * this.state.gridSize];
-
-        if (!this.state.cellLiveSet.has(`${currX},${currY}`)) {
-            cellLiveSet.add(`${currX},${currY}`);
-            canvasCtx.fillRect(coordsMapped[0], coordsMapped[1], this.state.gridSize, this.state.gridSize);
-        } else {
-            cellLiveSet.delete(`${currX},${currY}`);
-            canvasCtx.clearRect(coordsMapped[0], coordsMapped[1], this.state.gridSize, this.state.gridSize);
-        }
-
-        this.drawGrid(canvasCtx);
-
-        await this.setState({
-            isDrawing: true,
-            cellLiveSet: cellLiveSet,
-            lastEdited: `${currX},${currY}`,
-        });
-    };
-
-    canvasMouseMove = async (event) => {
-        const canvasCtx = this.state.canvasCurr === 'canvas1' ? this.canvasCtx1 : this.canvasCtx2;
-
-        const currX = Math.floor(event.offsetX / this.state.gridSize);
-        const currY = Math.floor(event.offsetY / this.state.gridSize);
-
-        if (this.state.isDrawing && this.state.lastEdited !== `${currX},${currY}`) {
+        if (!this.state.isAnimating) {
+            const canvasCtx = this.state.canvasCurr === 'canvas1' ? this.canvasCtx1 : this.canvasCtx2;
             const cellLiveSet = new Set(this.state.cellLiveSet);
+
+            const currX = Math.floor(event.offsetX / this.state.gridSize);
+            const currY = Math.floor(event.offsetY / this.state.gridSize);
 
             const coordsMapped = [currX * this.state.gridSize, currY * this.state.gridSize];
 
@@ -206,17 +182,50 @@ class Canvas extends Component {
 
             this.drawGrid(canvasCtx);
 
-            this.setState({
+            await this.setState({
+                isDrawing: true,
                 cellLiveSet: cellLiveSet,
                 lastEdited: `${currX},${currY}`,
             });
         }
     };
 
+    canvasMouseMove = async (event) => {
+        if (!this.state.isAnimating) {
+            const canvasCtx = this.state.canvasCurr === 'canvas1' ? this.canvasCtx1 : this.canvasCtx2;
+
+            const currX = Math.floor(event.offsetX / this.state.gridSize);
+            const currY = Math.floor(event.offsetY / this.state.gridSize);
+
+            if (this.state.isDrawing && this.state.lastEdited !== `${currX},${currY}`) {
+                const cellLiveSet = new Set(this.state.cellLiveSet);
+
+                const coordsMapped = [currX * this.state.gridSize, currY * this.state.gridSize];
+
+                if (!this.state.cellLiveSet.has(`${currX},${currY}`)) {
+                    cellLiveSet.add(`${currX},${currY}`);
+                    canvasCtx.fillRect(coordsMapped[0], coordsMapped[1], this.state.gridSize, this.state.gridSize);
+                } else {
+                    cellLiveSet.delete(`${currX},${currY}`);
+                    canvasCtx.clearRect(coordsMapped[0], coordsMapped[1], this.state.gridSize, this.state.gridSize);
+                }
+
+                this.drawGrid(canvasCtx);
+
+                this.setState({
+                    cellLiveSet: cellLiveSet,
+                    lastEdited: `${currX},${currY}`,
+                });
+            }
+        }
+    };
+
     canvasMouseUp = async (event) => {
-        this.setState({
-            isDrawing: false,
-        });
+        if (!this.state.isAnimating) {
+            this.setState({
+                isDrawing: false,
+            });
+        }
     };
 
     drawActive(canvasCtx) {
@@ -255,7 +264,7 @@ class Canvas extends Component {
 
     async animateStep(timestamp) {
         if (this.timePrev === null || this.timePrev === undefined) {
-            this.timePrev = timestamp
+            this.timePrev = timestamp;
         }
         if (this.state.isAnimating) {
             this.rAF = requestAnimationFrame(this.animateStep.bind(this));
@@ -263,11 +272,11 @@ class Canvas extends Component {
             if (timePassed >= this.state.fps) {
                 this.algoGameOfLife();
                 this.drawActive(this.state.canvasCurr === 'canvas1' ? this.canvasCtx2 : this.canvasCtx1);
-                this.timePrev = timestamp
+                this.timePrev = timestamp;
                 await this.setState({
                     generation: this.state.generation + 1,
                     canvasCurr: this.state.canvasCurr === 'canvas1' ? 'canvas2' : 'canvas1',
-                    timePrev: timestamp
+                    timePrev: timestamp,
                 });
             }
         }
@@ -277,38 +286,25 @@ class Canvas extends Component {
         if (this.state.isAnimating) {
             clearTimeout(this.timeout);
             cancelAnimationFrame(this.rAF);
-            // this.canvas.addEventListener('mousedown', this.canvasMouseDown);
-            // this.canvas.addEventListener('mousemove', this.canvasMouseMove);
-            // this.canvas.addEventListener('mouseup', this.canvasMouseUp);
             this.setState({ isAnimating: false });
         }
     }
 
     async resetAnimation() {
         const canvas = this.state.canvasCurr === 'canvas1' ? this.canvas1 : this.canvas2;
-        
-        canvas.addEventListener('mousedown', this.canvasMouseDown);
-        canvas.addEventListener('mousemove', this.canvasMouseMove);
-        canvas.addEventListener('mouseup', this.canvasMouseUp);
-        
+
         await this.setState({
             isAnimating: false,
             generation: 0,
             cellLiveSet: this.state.initState,
         });
-        
+
         this.drawActive(this.canvasCtx1);
         this.drawActive(this.canvasCtx2);
     }
 
     async startAnimation() {
         if (!this.state.isAnimating) {
-            this.canvas1.removeEventListener('mousedown', this.canvasMouseDown);
-            this.canvas1.removeEventListener('mousemove', this.canvasMouseMove);
-            this.canvas1.removeEventListener('mouseup', this.canvasMouseUp);
-            this.canvas2.removeEventListener('mousedown', this.canvasMouseDown);
-            this.canvas2.removeEventListener('mousemove', this.canvasMouseMove);
-            this.canvas2.removeEventListener('mouseup', this.canvasMouseUp);
             await this.setState({ isAnimating: true, initState: this.state.cellLiveSet });
             this.animateStep();
         }
@@ -319,9 +315,6 @@ class Canvas extends Component {
 
         if (this.state.isAnimating) {
             this.timePrev = 0;
-            canvas.addEventListener('mousedown', (event) => this.canvasMouseDown(event));
-            canvas.addEventListener('mousemove', (event) => this.canvasMouseMove(event));
-            canvas.addEventListener('mouseup', (event) => this.canvasMouseUp(event));
             this.setState({ isAnimating: false });
         }
     }
