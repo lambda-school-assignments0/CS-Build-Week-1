@@ -17,3 +17,5 @@
 - clean up useless async await from Canvas.js
 
 - add in functionality for 'Clear' button [DONE]
+
+- add in functionality for 'Step' button
