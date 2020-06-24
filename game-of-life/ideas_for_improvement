@@ -12,4 +12,8 @@
 - fix glitch where it takes another step after
   hitting stop/reset [DONE]
 
-- debug start/stop/reset and get functionality down
+- debug start/stop/reset and get functionality down [DONE]
+
+- clean up useless async await from Canvas.js
+
+- add in functionality for 'Clear' button [DONE]

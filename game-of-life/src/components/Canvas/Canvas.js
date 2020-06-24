@@ -9,12 +9,13 @@ class Canvas extends Component {
             canvasRef2: React.createRef(),
             canvasSize: 400,
             cellLiveSet: new Set(),
-            fps: 2000, // new frame every ${fps} / 1000 seconds
+            fps: 500, // new frame every ${fps} / 1000 seconds
             generation: 0,
             gridSize: 20,
             initState: new Set(),
             isAnimating: false,
             isDrawing: false,
+            isPaused: false,
             lastEdited: null,
             timePrev: 0,
         };
@@ -282,17 +283,26 @@ class Canvas extends Component {
         }
     }
 
-    pauseAnimation() {
+    async clearAnimation() {
+        this.timePrev = 0;
+        await this.setState({
+            isAnimating: false,
+            generation: 0,
+            cellLiveSet: new Set(),
+        });
+
+        this.drawActive(this.canvasCtx1);
+        this.drawActive(this.canvasCtx2);
+    }
+
+    async pauseAnimation() {
         if (this.state.isAnimating) {
-            clearTimeout(this.timeout);
-            cancelAnimationFrame(this.rAF);
-            this.setState({ isAnimating: false });
+            this.timePrev = 0;
+            await this.setState({ isAnimating: false, isPaused: true });
         }
     }
 
     async resetAnimation() {
-        const canvas = this.state.canvasCurr === 'canvas1' ? this.canvas1 : this.canvas2;
-
         await this.setState({
             isAnimating: false,
             generation: 0,
@@ -303,6 +313,13 @@ class Canvas extends Component {
         this.drawActive(this.canvasCtx2);
     }
 
+    async resumeAnimation() {
+        if (!this.state.isAnimating) {
+            await this.setState({ isAnimating: true, isPaused: false });
+            this.animateStep();
+        }
+    }
+
     async startAnimation() {
         if (!this.state.isAnimating) {
             await this.setState({ isAnimating: true, initState: this.state.cellLiveSet });
@@ -311,11 +328,9 @@ class Canvas extends Component {
     }
 
     async stopAnimation() {
-        const canvas = this.state.canvasCurr === 'canvas1' ? this.canvas1 : this.canvas2;
-
         if (this.state.isAnimating) {
             this.timePrev = 0;
-            this.setState({ isAnimating: false });
+            await this.setState({ isAnimating: false });
         }
     }
 
@@ -328,6 +343,7 @@ class Canvas extends Component {
                 <button onClick={() => this.startAnimation()}>Start</button>
                 <button onClick={() => this.stopAnimation()}>Stop</button>
                 <button onClick={() => this.resetAnimation()}>Reset</button>
+                <button onClick={() => this.clearAnimation()}>Clear</button>
             </div>
         );
     }
