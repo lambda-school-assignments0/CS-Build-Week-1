@@ -327,6 +327,11 @@ class Canvas extends Component {
         }
     }
 
+    async stepAnimation() {
+        await this.algoGameOfLife();
+        this.drawActive(this.state.canvasCurr === 'canvas1' ? this.canvasCtx1 : this.canvasCtx2);
+    }
+
     async stopAnimation() {
         if (this.state.isAnimating) {
             this.timePrev = 0;
@@ -341,6 +346,7 @@ class Canvas extends Component {
                 <canvas className='canvas1' style={{ display: this.state.canvasCurr === 'canvas1' ? 'flex' : 'none' }} ref={this.state.canvasRef1} width={this.state.canvasSize} height={this.state.canvasSize}></canvas>
                 <canvas className='canvas2' style={{ display: this.state.canvasCurr === 'canvas2' ? 'flex' : 'none' }} ref={this.state.canvasRef2} width={this.state.canvasSize} height={this.state.canvasSize}></canvas>
                 <button onClick={() => this.startAnimation()}>Start</button>
+                <button onClick={() => this.stepAnimation()}>Step</button>
                 <button onClick={() => this.stopAnimation()}>Stop</button>
                 <button onClick={() => this.resetAnimation()}>Reset</button>
                 <button onClick={() => this.clearAnimation()}>Clear</button>
