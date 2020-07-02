@@ -6,9 +6,10 @@ class About extends Component {
             <div>
                 <h2>About this Algorithm:</h2>
                 <p>
-                    <strong>Show us that you researched this algorithm! Talk about the founder, Turing-completeness, etc.</strong>
+                    <strong>Origins</strong>
                 </p>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas gravida lectus turpis, sed vulputate augue malesuada et. Duis metus lectus, tempor sed finibus nec, feugiat nec nisl. Donec eros tellus, rutrum id viverra et, euismod eu mauris. Sed eu maximus urna. Praesent vel tincidunt dui. Nulla gravida purus id sapien iaculis tristique.</p>
+                <p>John von Neumann defined life as a creation which can simulate a Turing machine. Von Neumann pursued a solution which would use electromagnetic components floating randomly in liquid or gas but turned out not to be realistic with the technology available at the time. Stanislaw Ulam invented cellular automata which was intended to simulate von Neumann's electromagnetic constructions.</p>
+                <p>John Conway experimented with a variety of different 2D cellular automation rules. His goal was to define an interesting yet unpredictable automation. For example, he wanted some configurations to last for a long time before dying and other configurations to go on forever.</p>
             </div>
         );
     }
