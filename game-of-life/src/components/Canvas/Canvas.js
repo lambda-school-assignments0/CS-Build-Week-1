@@ -287,6 +287,7 @@ class Canvas extends Component {
         this.timePrev = 0;
         await this.setState({
             isAnimating: false,
+            isPaused: false,
             generation: 0,
             cellLiveSet: new Set(),
         });
@@ -305,6 +306,7 @@ class Canvas extends Component {
     async resetAnimation() {
         await this.setState({
             isAnimating: false,
+            isPaused: false,
             generation: 0,
             cellLiveSet: this.state.initState,
         });
@@ -335,22 +337,14 @@ class Canvas extends Component {
         }
     }
 
-    async stopAnimation() {
-        if (this.state.isAnimating) {
-            this.timePrev = 0;
-            await this.setState({ isAnimating: false });
-        }
-    }
-
     render() {
         return (
             <div>
                 <h2>Generation: {this.state.generation}</h2>
                 <canvas className='canvas1' style={{ display: this.state.canvasCurr === 'canvas1' ? 'flex' : 'none' }} ref={this.state.canvasRef1} width={this.state.canvasSize} height={this.state.canvasSize}></canvas>
                 <canvas className='canvas2' style={{ display: this.state.canvasCurr === 'canvas2' ? 'flex' : 'none' }} ref={this.state.canvasRef2} width={this.state.canvasSize} height={this.state.canvasSize}></canvas>
-                {this.state.isPaused ? <button onClick={() => this.resumeAnimation()}>Resume</button> : <button onClick={() => this.startAnimation()}>Start</button>}
+                {!this.state.isAnimating && !this.state.isPaused ? <button onClick={() => this.startAnimation()}>Start</button> : !this.state.isAnimating && this.state.isPaused ? <button onClick={() => this.resumeAnimation()}>Resume</button> : this.state.isAnimating ? <button onClick={() => this.pauseAnimation()}>Pause</button> : null}
                 <button onClick={() => this.stepAnimation()}>Step</button>
-                <button onClick={() => this.pauseAnimation()}>Pause</button>
                 <button onClick={() => this.resetAnimation()}>Reset</button>
                 <button onClick={() => this.clearAnimation()}>Clear</button>
             </div>
