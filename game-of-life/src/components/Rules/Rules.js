@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
 
+import './Rules.css';
+
 class Rules extends Component {
     render() {
         return (
-            <div>
+            <div className='rules'>
                 <h2>Rules:</h2>
                 <ul>
                     <li>Any live cell with fewer than 2 live neighbors dies, as if by underpopulation.</li>

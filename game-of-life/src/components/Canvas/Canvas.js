@@ -341,7 +341,7 @@ class Canvas extends Component {
 
     render() {
         return (
-            <div>
+            <div className='canvas'>
                 <h2>Generation: {this.state.generation}</h2>
                 <canvas className='canvas1' style={{ display: this.state.canvasCurr === 'canvas1' ? 'flex' : 'none' }} ref={this.state.canvasRef1} width={this.state.canvasSize} height={this.state.canvasSize}></canvas>
                 <canvas className='canvas2' style={{ display: this.state.canvasCurr === 'canvas2' ? 'flex' : 'none' }} ref={this.state.canvasRef2} width={this.state.canvasSize} height={this.state.canvasSize}></canvas>
