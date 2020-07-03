@@ -345,10 +345,12 @@ class Canvas extends Component {
                 <h2>Generation: {this.state.generation}</h2>
                 <canvas className='canvas1' style={{ display: this.state.canvasCurr === 'canvas1' ? 'flex' : 'none' }} ref={this.state.canvasRef1} width={this.state.canvasSize} height={this.state.canvasSize}></canvas>
                 <canvas className='canvas2' style={{ display: this.state.canvasCurr === 'canvas2' ? 'flex' : 'none' }} ref={this.state.canvasRef2} width={this.state.canvasSize} height={this.state.canvasSize}></canvas>
-                {!this.state.isAnimating && !this.state.isPaused ? <button onClick={() => this.startAnimation()}>Start</button> : !this.state.isAnimating && this.state.isPaused ? <button onClick={() => this.resumeAnimation()}>Resume</button> : this.state.isAnimating ? <button onClick={() => this.pauseAnimation()}>Pause</button> : null}
-                <button onClick={() => this.stepAnimation()}>Step</button>
-                <button onClick={() => this.resetAnimation()}>Reset</button>
-                <button onClick={() => this.clearAnimation()}>Clear</button>
+                <div className='canvas-controls'>
+                    {!this.state.isAnimating && !this.state.isPaused ? <button onClick={() => this.startAnimation()}>Start</button> : !this.state.isAnimating && this.state.isPaused ? <button onClick={() => this.resumeAnimation()}>Resume</button> : this.state.isAnimating ? <button onClick={() => this.pauseAnimation()}>Pause</button> : null}
+                    <button onClick={() => this.stepAnimation()}>Step</button>
+                    <button onClick={() => this.resetAnimation()}>Reset</button>
+                    <button onClick={() => this.clearAnimation()}>Clear</button>
+                </div>
             </div>
         );
     }
